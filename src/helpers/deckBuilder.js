@@ -1,16 +1,16 @@
-import { values, suits } from './data';
+import { faces, suits } from './data';
 
 export const buildDeck = () => {
-    const deckArray = values.map(
+    const deckArray = faces.map(
         val => suits.map(
-            suit => ({ suit: suit, value: val })
+            suit => ({ suit: suit, face: val })
         )
     );
     let deck = [];
-    deckArray.map(values => {
-        values.map(val => {
-            deck.push(val);
-        })
-    });
+    deckArray.map(values =>
+        values.map(val =>
+            deck.push(val)
+        )
+    );
     return deck;
 };
