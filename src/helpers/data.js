@@ -1,4 +1,4 @@
-export const values = [
+export const faces = [
     'A',
     '2',
     '3',
