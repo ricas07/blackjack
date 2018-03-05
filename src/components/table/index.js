@@ -37,14 +37,39 @@ class Table extends Component {
         this.setState({ playerhand });
     }
 
+    calVal = card => {
+        const { face } = card;
+        let value;
+        switch(face) {
+            case 'J':
+            case 'Q':
+            case 'K':
+                value = 10;
+                break;
+            case 'A':
+                value = 11;
+                break;
+            default:
+                value = parseInt(face, 10);
+        }
+        return value;
+    }
+
     returnPlayerHand = () => {
         if (this.state.playerhand) {
             return this.state.playerhand.map((card) => {
                 const { face, suit } = card;
-                return <Card key={`${face}-${suit}`} face={face} suit={suit} />
+                const value = this.calVal(card);
+                return <Card key={`${face}-${suit}`} face={face} suit={suit} value={value} />
             });
         }
         return null;
+    }
+
+    playerHandValue = () => {
+        const { playerhand } = this.state;
+        const handValue = playerhand ? this.state.playerhand.reduce((a, b) => a + this.calVal(b), 0) : 0;
+        return handValue;
     }
 
     render() {
@@ -57,6 +82,7 @@ class Table extends Component {
                     </button>
                     <h3>Dealer Cards</h3>
                     <h3>Your Cards</h3>
+                    {this.playerHandValue()}
                     {this.returnPlayerHand()}
                 </section>
             );
