@@ -1,16 +1,20 @@
-import React, { Component }from 'react';
+import React, { Component } from 'react';
 import Card from '../card';
-import { buildDeck } from '../../helpers/deckBuilder';
+import buildDeck from '../../helpers/deckBuilder';
 
 class Table extends Component {
     state = {
-        cardIndex: -1,
+        cardIndex: 4,
     };
 
-    componentDidMount() {
+    componentWillMount() {
         const unShuffledDeck = buildDeck();
         const deck = this.shuffle(unShuffledDeck);
         this.setState({ deck });
+    }
+
+    componentDidMount() {
+        this.initialDeal();
     }
 
     shuffle = deck => {
@@ -32,9 +36,17 @@ class Table extends Component {
     }
 
     dealPlayer = () => {
-        const playerhand = this.state.playerhand || [];
-        playerhand.push(this.dealCard());
-        this.setState({ playerhand });
+        const playerHand = this.state.playerHand;
+        playerHand.push(this.dealCard());
+        this.setState({ playerHand });
+    }
+
+    initialDeal = () => {
+        const { deck } = this.state;
+        const playerHand = [deck[0], deck[2]];
+        const dealerHand = [deck[1], deck[3]];
+        console.log(playerHand)
+        this.setState({ playerHand, dealerHand });
     }
 
     calVal = card => {
@@ -55,9 +67,9 @@ class Table extends Component {
         return value;
     }
 
-    returnPlayerHand = () => {
-        if (this.state.playerhand) {
-            return this.state.playerhand.map((card) => {
+    returnplayerHand = () => {
+        if (this.state.playerHand) {
+            return this.state.playerHand.map((card) => {
                 const { face, suit } = card;
                 const value = this.calVal(card);
                 return <Card key={`${face}-${suit}`} face={face} suit={suit} value={value} />
@@ -67,12 +79,14 @@ class Table extends Component {
     }
 
     playerHandValue = () => {
-        const { playerhand } = this.state;
-        const handValue = playerhand ? this.state.playerhand.reduce((a, b) => a + this.calVal(b), 0) : 0;
+        const { playerHand } = this.state;
+        const handValue = playerHand ? this.state.playerHand.reduce((a, b) => a + this.calVal(b), 0) : 0;
         return handValue;
     }
 
+
     render() {
+        console.log(this.state);
         if (this.state.deck) {
             return (
                 <section>
@@ -83,7 +97,7 @@ class Table extends Component {
                     <h3>Dealer Cards</h3>
                     <h3>Your Cards</h3>
                     {this.playerHandValue()}
-                    {this.returnPlayerHand()}
+                    {this.returnplayerHand()}
                 </section>
             );
         }
