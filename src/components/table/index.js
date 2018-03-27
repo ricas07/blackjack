@@ -35,8 +35,8 @@ class Table extends Component {
         return deck[currIndex];
     }
 
-    playerStand = () => {
-        this.setState({ playerDone: true });
+    stand = who => {
+        this.setState({ [`${who}Done`]: true });
     }
 
     deal = who => {
@@ -80,7 +80,8 @@ class Table extends Component {
             return <Card face={face} suit={suit} value={value} />;
         }
         return null;
-}
+    }
+
     returnHand = who => {
         const currPlayer = this.state[`${who}Hand`];
         if (currPlayer) {
@@ -100,17 +101,32 @@ class Table extends Component {
         return 0;
     }
 
+    handResult = () => {
+        const playerHandValue = this.handValue('player');
+        const dealerHandValue = this.handValue('dealer');
+        if (playerHandValue > dealerHandValue || dealerHandValue > 21) {
+            return 'Winner';
+        } else if (playerHandValue < dealerHandValue) {
+            return 'Loser!';
+        } else if (playerHandValue === dealerHandValue) {
+            return 'Tie';
+        }
+        return null;
+    }
+
     render() {
         console.log(this.state);
-        const handValue = this.handValue('player');
-        const { playerDone } = this.state;
-        const loser = (handValue > 21) ?
-            <p>LOSER!!</p> : null;
+        const playerHandValue = this.handValue('player');
+        const dealerHandValue = this.handValue('dealer');
+        const { playerDone, dealerDone } = this.state;
+        const buster = (playerHandValue > 21) ?
+            <p>You BUSTED!</p> : null;
         if (this.state.deck && this.state.playerHand) {
             return (
                 <section>
                     <h2>Table</h2>
-                    {loser}
+                    {buster}
+                    {dealerDone && this.handResult()}
                     {!playerDone && <div>
                         <h3>Dealer Shows: {this.calVal(this.state.dealerHand[0])} </h3>
                         {this.dealerFirstCard()}
@@ -118,14 +134,20 @@ class Table extends Component {
                     {playerDone && <div>
                         <h3>Dealer has: {this.handValue('dealer')}</h3>
                         <button
-                            onClick={() => this.deal('player')}
-                            disabled={playerDone}
+                            onClick={() => this.deal('dealer')}
+                            disabled={dealerDone}
                         >
                             Deal
                         </button>
+                        <button
+                            onClick={() => this.stand('dealer')}
+                            disabled={dealerDone}
+                        >
+                        Stand
+                        </button>
                         {this.returnHand('dealer')}
                     </div>}
-                    <h3>You have: {handValue}</h3>
+                    <h3>You have: {playerHandValue}</h3>
                     <button
                         onClick={() => this.deal('player')}
                         disabled={playerDone}
@@ -133,7 +155,7 @@ class Table extends Component {
                         Deal
                     </button>
                     <button
-                        onClick={() => this.playerStand()}
+                        onClick={() => this.stand('player')}
                         disabled={playerDone}
                     >
                         Stand
