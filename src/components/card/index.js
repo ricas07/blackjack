@@ -1,13 +1,23 @@
 import React from 'react';
 
-const Card = ({ suit, face, value }) => {
-    return (
-        <div>
-            <p>Suit: {suit}</p>
-            <p>Face: {face}</p>
-            <p>Value: {value}</p>
-        </div>
-    );
+const suitIconMap = {
+  hearts: '❤',
+  clubs: '♣',
+  diamonds: '◆',
+  spades: '♠',
 };
+
+function Card({ suit, face, }) {
+  return (
+    <div className={`card ${suit}`}>
+      <p>
+        {face}
+      </p>
+      <p>
+        {suitIconMap[suit]}
+      </p>
+    </div>
+  );
+}
 
 export default Card;
