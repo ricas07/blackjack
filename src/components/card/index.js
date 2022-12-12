@@ -1,10 +1,10 @@
 import React from 'react';
 
 const suitIconMap = {
-  hearts: '❤',
-  clubs: '♣',
-  diamonds: '◆',
-  spades: '♠',
+  heart: '❤',
+  club: '♣',
+  diamond: '◆',
+  spade: '♠',
 };
 
 function Card({ suit, face, }) {

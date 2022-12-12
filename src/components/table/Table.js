@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../card';
+import Score from '../score';
 import { buildDeck, shuffleDeck, cardValue } from '../../helpers/deck';
 
 function Table() {
@@ -10,6 +11,7 @@ function Table() {
     lost: 0,
     tie: 0,
     currentResult: '',
+    handActive: false,
   });
 
   const newDeal = () => {
@@ -18,45 +20,49 @@ function Table() {
     const dealerHand = [deck[cardIndex + 2], deck[cardIndex + 4]];
     setState({
       ...state,
-      deck,
       playerHand,
       dealerHand,
       cardIndex: cardIndex + 4,
       playerDone: false,
       dealerDone: false,
+      handActive: true,
       currentResult: '',
     });
   };
 
-  useEffect(() => {
-    newDeal();
-  }, []);
-
   const handValue = (who) => {
-    if (state.playerHand) {
+    const { playerHand } = state;
+    if (playerHand) {
       return state[`${who}Hand`].reduce((a, b) => a + cardValue(b), 0);
     }
     return 0;
   };
 
-  const stand = (who) => {
+  const calculateResult = () => {
     const playerHandValue = handValue('player');
     const dealerHandValue = handValue('dealer');
-    if (who === 'dealer') {
-      let result;
+
+    if (dealerHandValue >= 17) {
+      let result = {};
       if (playerHandValue > 21) {
         result = { lost: state.lost + 1, currentResult: 'You busted, loser!' };
       } else if (playerHandValue < dealerHandValue && dealerHandValue < 22) {
         result = { lost: state.lost + 1, currentResult: 'You lost, loser!' };
-      } else if (dealerHandValue > 21 || playerHandValue > dealerHandValue) {
-        result = { won: state.won + 1, currentResult: 'You won!' };
+      } else if (dealerHandValue > 21) {
+        result = { won: state.won + 1, currentResult: 'Dealer busted, you won!' };
+      } else if (playerHandValue > dealerHandValue) {
+        result = { won: state.won + 1, currentResult: 'You won! Well played.' };
       } else if (playerHandValue === dealerHandValue) {
         result = { tie: state.tie + 1, currentResult: 'You pushed!' };
       }
 
-      return setState({ ...state, ...result, [`${who}Done`]: true });
+      setState({ ...state, playerDone: true, dealerDone: true, ...result });
     }
-    return setState({ ...state, [`${who}Done`]: true });
+  };
+
+  const stand = (who) => {
+    setState({ ...state, [`${who}Done`]: true });
+    calculateResult();
   };
 
   const deal = (who) => {
@@ -65,17 +71,17 @@ function Table() {
     const currentPlayer = `${who}Hand`;
     const currentHand = state[currentPlayer];
     currentHand.push(deck[nextIndex]);
-    const bust = handValue(who) > 21;
-    if (bust) {
-      return stand(who);
-    }
+    const currentHandValue = handValue(who);
+    const whoDone = (who === 'dealer' && currentHandValue >=17 || currentHandValue > 21);
 
-    return setState({
+    setState({
       ...state,
       [currentPlayer]: currentHand,
-      [`${who}Done`]: bust,
+      [`${who}Done`]: whoDone,
       cardIndex: nextIndex,
     });
+
+    calculateResult();
   };
 
   const dealerFirstCard = () => {
@@ -107,92 +113,79 @@ function Table() {
   };
 
   console.log(state);
-  if (!state.deck || !state.playerHand) return null;
+  if (!state.deck) return null;
 
   const playerHandValue = handValue('player');
-  const { playerDone, dealerDone } = state;
-  if (state.deck && state.playerHand) {
-    return (
-      <>
-        {state.currentResult}
-        <section className="table">
-
-          <div className="hand dealer">
-            {!playerDone && (
-              <>
-                <h3>
-                  Dealer Shows:
-                  {cardValue(state.dealerHand[0])}
-                </h3>
-                {dealerFirstCard()}
-              </>
-            )}
-            {playerDone && (
-              <>
-                <h3>
-                  Dealer has:
-                  {handValue('dealer')}
-                </h3>
-                {returnHand('dealer')}
-                <button
-                  onClick={() => deal('dealer')}
-                  disabled={dealerDone}
-                  type="button"
-                >
-                  Hit
-                </button>
-                <button
-                  onClick={() => stand('dealer')}
-                  disabled={dealerDone}
-                  type="button"
-                >
-                  Stand
-                </button>
-              </>
-            )}
-          </div>
-          <div className="hand player">
-            <h3>
-              You have:
-              {playerHandValue}
-            </h3>
-            {returnHand('player')}
-            <button
-              onClick={() => deal('player')}
-              disabled={playerDone}
-              type="button"
-            >
-              Hit
-            </button>
-            <button
-              onClick={() => stand('player')}
-              disabled={playerDone}
-              type="button"
-            >
-              Stand
-            </button>
-          </div>
-          <div>
-            <button
-              onClick={newDeal}
-              disabled={state.cardIndex > state.deck.length * 0.75}
-              type="button"
-            >
-              New Deal
-            </button>
-            <div>
-              Score:
-              <ul>
-                <li>{`Won: ${state.won}`}</li>
-                <li>{`Lost: ${state.lost}`}</li>
-                <li>{`Tie: ${state.tie}`}</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-      </>
-    );
-  }
+  const { playerDone, dealerDone, handActive } = state;
+  return (
+    <>
+      <Score won={state.won} lost={state.lost} tie={state.tie} />
+      {state.currentResult}
+      <section className="table">
+        <div className="hand dealer">
+          {!playerDone && state.dealerHand ? (
+            <>
+              <h3>
+                Dealer Shows:
+                {cardValue(state.dealerHand[0])}
+              </h3>
+              {dealerFirstCard()}
+            </>
+          ) : (
+            <>
+              <h3>
+                Dealer has:
+                {handValue('dealer')}
+              </h3>
+              {returnHand('dealer')}
+              <button
+                onClick={() => deal('dealer')}
+                disabled={!handActive || dealerDone}
+                type="button"
+              >
+                Hit
+              </button>
+              <button
+                onClick={() => stand('dealer')}
+                disabled={!handActive || dealerDone}
+                type="button"
+              >
+                Stand
+              </button>
+            </>
+          )}
+        </div>
+        <div className="hand player">
+          <h3>
+            You have:
+            {playerHandValue}
+          </h3>
+          {returnHand('player')}
+          <button
+            onClick={() => deal('player')}
+            disabled={!handActive || playerDone}
+            type="button"
+          >
+            Hit
+          </button>
+          <button
+            onClick={() => stand('player')}
+            disabled={!handActive || playerDone}
+            type="button"
+          >
+            Stand
+          </button>
+        </div>
+      </section>
+      <button
+        onClick={newDeal}
+        disabled={state.cardIndex > state.deck.length * 0.75}
+        type="button"
+      >
+        New Deal
+      </button>
+    </>
+  );
 }
 
 export default Table;

@@ -15,8 +15,8 @@ export const faces = [
 ];
 
 export const suits = [
-  'hearts',
-  'diamonds',
-  'clubs',
-  'spades',
+  'heart',
+  'diamond',
+  'club',
+  'spade',
 ];
