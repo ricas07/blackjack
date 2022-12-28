@@ -5,7 +5,34 @@
   text-align: center;
 }
 
+.cards_container {
+  flex-direction: column;
+}
+
 .card {
-  padding: 1rem;
-  margin: 1rem;
+  padding: .5rem;
+  margin: .5rem;
+}
+
+.deal-container {
+  margin: 0 auto;
+  text-align: center;
+}
+
+button {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 5px 10px;
+  margin: 10px;
+}
+
+button.positive {
+  background-color:darkgreen;
+}
+
+button.negative {
+  background-color:orangered
 }

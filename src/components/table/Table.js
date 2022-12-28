@@ -3,6 +3,9 @@ import Card from '../card';
 import Score from '../score';
 import { buildDeck, shuffleDeck, cardValue } from '../../helpers/deck';
 
+// 52 * .75 = 39
+const CARD_LIMIT = 39;
+
 function Table() {
   const [state, setState] = useState({
     cardIndex: 0,
@@ -12,6 +15,7 @@ function Table() {
     tie: 0,
     currentResult: '',
     handActive: false,
+    gameActive: false,
   });
 
   const newDeal = () => {
@@ -26,6 +30,7 @@ function Table() {
       playerDone: false,
       dealerDone: false,
       handActive: true,
+      gameActive: true,
       currentResult: '',
     });
   };
@@ -56,7 +61,13 @@ function Table() {
         result = { tie: state.tie + 1, currentResult: 'You pushed!' };
       }
 
-      setState({ ...state, playerDone: true, dealerDone: true, ...result });
+      setState({
+        ...state,
+        playerDone: true,
+        dealerDone: true,
+        handActive: false,
+        ...result 
+      });
     }
   };
 
@@ -81,7 +92,9 @@ function Table() {
       cardIndex: nextIndex,
     });
 
-    calculateResult();
+    if (whoDone) {
+      calculateResult();
+    }
   };
 
   const dealerFirstCard = () => {
@@ -116,12 +129,37 @@ function Table() {
   if (!state.deck) return null;
 
   const playerHandValue = handValue('player');
-  const { playerDone, dealerDone, handActive } = state;
+  const { playerDone, dealerDone, gameActive, handActive } = state;
   return (
     <>
       <Score won={state.won} lost={state.lost} tie={state.tie} />
       {state.currentResult}
-      <section className="table">
+      {gameActive && <section className="table">
+        <div className="hand player">
+          <h3>
+            You have:
+            {playerHandValue}
+          </h3>
+          {returnHand('player')}
+            {!playerDone && <>
+              <button
+                className="positive"
+                onClick={() => deal('player')}
+                disabled={!handActive || playerDone}
+                type="button"
+              >
+                Hit
+              </button>
+              <button
+                className="negative"
+                onClick={() => stand('player')}
+                disabled={!handActive || playerDone}
+                type="button"
+              >
+                Stand
+              </button>
+            </>}
+        </div>
         <div className="hand dealer">
           {!playerDone && state.dealerHand ? (
             <>
@@ -138,52 +176,38 @@ function Table() {
                 {handValue('dealer')}
               </h3>
               {returnHand('dealer')}
-              <button
-                onClick={() => deal('dealer')}
-                disabled={!handActive || dealerDone}
-                type="button"
-              >
-                Hit
-              </button>
-              <button
-                onClick={() => stand('dealer')}
-                disabled={!handActive || dealerDone}
-                type="button"
-              >
-                Stand
-              </button>
+              {handActive && <>
+                <button
+                  className="positive"
+                  onClick={() => deal('dealer')}
+                  disabled={!handActive || dealerDone}
+                  type="button"
+                >
+                  Hit
+                </button>
+                <button
+                  className="negative"
+                  onClick={() => stand('dealer')}
+                  disabled={!handActive || dealerDone}
+                  type="button"
+                >
+                  Stand
+                </button>
+              </>}
             </>
           )}
         </div>
-        <div className="hand player">
-          <h3>
-            You have:
-            {playerHandValue}
-          </h3>
-          {returnHand('player')}
-          <button
-            onClick={() => deal('player')}
-            disabled={!handActive || playerDone}
-            type="button"
-          >
-            Hit
-          </button>
-          <button
-            onClick={() => stand('player')}
-            disabled={!handActive || playerDone}
-            type="button"
-          >
-            Stand
-          </button>
-        </div>
-      </section>
-      <button
+      </section>}
+      <div className="deal-container">
+      {state.cardIndex <= CARD_LIMIT ? <button
+        className="positive"
         onClick={newDeal}
-        disabled={state.cardIndex > state.deck.length * 0.75}
+        disabled={state.cardIndex > CARD_LIMIT}
         type="button"
       >
         New Deal
-      </button>
+      </button> : 'Game over! Reload page for a fresh deck.'}
+      </div>
     </>
   );
 }

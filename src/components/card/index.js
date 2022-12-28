@@ -10,12 +10,12 @@ const suitIconMap = {
 function Card({ suit, face, }) {
   return (
     <div className={`card ${suit}`}>
-      <p>
+      <span>
         {face}
-      </p>
-      <p>
+      </span>
+      <span>
         {suitIconMap[suit]}
-      </p>
+      </span>
     </div>
   );
 }
